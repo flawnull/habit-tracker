@@ -1,65 +1,83 @@
+//
+//  LoginView.swift
+//  habit-tracker
+//
+
 import SwiftUI
 
 struct LoginView: View {
-    @StateObject private var authManager = AuthenticationManager()
+    @EnvironmentObject private var authManager: AuthenticationManager
     @State private var email = ""
     @State private var password = ""
     @State private var showPassword = false
     @State private var showSignUp = false
     @State private var showForgotPassword = false
     @State private var showError = false
+    @State private var appeared = false
     @FocusState private var focusedField: Field?
-    
+
     enum Field {
         case email, password
     }
-    
+
+    private var canSubmit: Bool {
+        !email.isEmpty && !password.isEmpty && !authManager.isLoading
+    }
+
     var body: some View {
         NavigationStack {
-            ZStack {
-                // Background gradient
-                LinearGradient(
-                    colors: [
-                        Color.blue.opacity(0.1),
-                        Color.purple.opacity(0.1)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
-                
-                ScrollView {
-                    VStack(spacing: 32) {
-                        Spacer(minLength: 60)
-                        
-                        // Logo and title
-                        headerSection
-                        
-                        // Login form
-                        loginFormSection
-                        
-                        // Sign in button
-                        signInButton
-                        
-                        // Forgot password
-                        forgotPasswordButton
-                        
-                        // Divider
-                        dividerSection
-                        
-                        // Sign up button
-                        signUpButton
-                        
-                        Spacer(minLength: 40)
+            ScrollView {
+                VStack(spacing: 28) {
+                    Spacer(minLength: 48)
+                    header
+                    if AppConfig.isFirebaseReady {
+                        form
+                        Button {
+                            Task { await signIn() }
+                        } label: {
+                            if authManager.isLoading {
+                                CustomLoadingView(tintColor: .white)
+                            } else {
+                                Text("Sign in")
+                            }
+                        }
+                        .buttonStyle(BrandButtonStyle())
+                        .disabled(!canSubmit)
+
+                        Button("Forgot password?") { showForgotPassword = true }
+                            .font(.subheadline.weight(.medium))
+
+                        OrDivider()
+                    } else {
+                        demoNotice
                     }
-                    .padding(.horizontal, 24)
+
+                    guestButton
+
+                    if AppConfig.isFirebaseReady {
+                        Button {
+                            showSignUp = true
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text("New here?").foregroundStyle(.secondary)
+                                Text("Create an account").fontWeight(.semibold)
+                            }
+                            .font(.subheadline)
+                        }
+                    }
+                    Spacer(minLength: 32)
                 }
+                .padding(.horizontal, 24)
+                .opacity(appeared ? 1 : 0)
+                .offset(y: appeared ? 0 : 20)
             }
-            .navigationBarHidden(true)
-            .alert("Error", isPresented: $showError) {
+            .scrollDismissesKeyboard(.interactively)
+            .brandScreen()
+            .toolbar(.hidden, for: .navigationBar)
+            .alert("Couldn't sign in", isPresented: $showError) {
                 Button("OK", role: .cancel) { }
             } message: {
-                Text(authManager.errorMessage ?? "An error occurred")
+                Text(authManager.errorMessage ?? "Something went wrong.")
             }
             .fullScreenCover(isPresented: $showSignUp) {
                 SignUpView()
@@ -67,163 +85,114 @@ struct LoginView: View {
             .sheet(isPresented: $showForgotPassword) {
                 ForgotPasswordView()
             }
-            .fullScreenCover(isPresented: $authManager.isAuthenticated) {
-                ContentView()
+            .onAppear {
+                withAnimation(.spring(response: 0.8, dampingFraction: 0.8).delay(0.1)) { appeared = true }
             }
         }
     }
-    
-    private var headerSection: some View {
-        VStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [.blue, .purple],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 100, height: 100)
-                    .shadow(color: .blue.opacity(0.3), radius: 20, x: 0, y: 10)
-                
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 50))
-                    .foregroundColor(.white)
+
+    private var header: some View {
+        VStack(spacing: 18) {
+            BrandMark(size: 104)
+            VStack(spacing: 8) {
+                Text("Welcome back")
+                    .font(.system(size: 34, weight: .bold, design: .rounded))
+                Text("Small loops, every day. Pick up where you left off.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
             }
-            .padding(.bottom, 8)
-            
-            Text("Welcome Back")
-                .font(.system(size: 32, weight: .bold, design: .rounded))
-            
-            Text("Sign in to continue tracking your habits")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
         }
     }
-    
-    private var loginFormSection: some View {
-        VStack(spacing: 16) {
-            // Email field
-            CustomTextField(
-                icon: "envelope.fill",
-                placeholder: "Email",
-                text: $email,
-                isSecure: false
-            )
-            .focused($focusedField, equals: .email)
-            .textInputAutocapitalization(.never)
-            .keyboardType(.emailAddress)
-            .submitLabel(.next)
-            .onSubmit {
-                focusedField = .password
-            }
-            
-            // Password field
+
+    private var form: some View {
+        VStack(spacing: 14) {
+            CustomTextField(icon: "envelope.fill", placeholder: "Email", text: $email, contentType: .username)
+                .focused($focusedField, equals: .email)
+                .textInputAutocapitalization(.never)
+                .keyboardType(.emailAddress)
+                .submitLabel(.next)
+                .onSubmit { focusedField = .password }
+
             CustomTextField(
                 icon: "lock.fill",
                 placeholder: "Password",
                 text: $password,
                 isSecure: !showPassword,
                 showPasswordToggle: true,
-                showPassword: $showPassword
+                showPassword: $showPassword,
+                contentType: .password
             )
             .focused($focusedField, equals: .password)
             .submitLabel(.go)
-            .onSubmit {
-                Task {
-                    await signIn()
-                }
-            }
+            .onSubmit { Task { await signIn() } }
         }
     }
-    
-    private var signInButton: some View {
-        Button {
-            Task {
-                await signIn()
+
+    private var demoNotice: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "externaldrive.badge.icloud")
+                .font(.title3)
+                .foregroundStyle(Theme.brandGradient)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Local demo build")
+                    .font(.subheadline.weight(.semibold))
+                Text("No Firebase config found, so accounts are off. Everything works locally, and habits stay on this device.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-        } label: {
-            HStack {
-                if authManager.isLoading {
-                    CustomLoadingView(tintColor: .white)
-                } else {
-                    Text("Sign In")
+        }
+        .padding(16)
+        .glassCard(cornerRadius: 20)
+    }
+
+    private var guestButton: some View {
+        Group {
+            if AppConfig.isFirebaseReady {
+                Button {
+                    Haptics.tap(.light)
+                    authManager.enterGuestMode()
+                } label: {
+                    Label("Continue without an account", systemImage: "person.crop.circle.dashed")
                         .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 44)
                 }
+                .buttonStyle(.glass)
+            } else {
+                Button {
+                    Haptics.tap(.light)
+                    authManager.enterGuestMode()
+                } label: {
+                    Label("Start tracking", systemImage: "arrow.right")
+                }
+                .buttonStyle(BrandButtonStyle())
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 56)
-            .foregroundColor(.white)
-            .background(
-                LinearGradient(
-                    colors: [.blue, .purple],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-            )
-            .cornerRadius(16)
-            .shadow(color: .blue.opacity(0.3), radius: 10, x: 0, y: 5)
-        }
-        .disabled(authManager.isLoading || email.isEmpty || password.isEmpty)
-        .opacity(authManager.isLoading || email.isEmpty || password.isEmpty ? 0.6 : 1.0)
-        .animation(.easeInOut(duration: 0.2), value: authManager.isLoading)
-    }
-    
-    private var forgotPasswordButton: some View {
-        Button {
-            showForgotPassword = true
-        } label: {
-            Text("Forgot Password?")
-                .font(.subheadline)
-                .foregroundColor(.blue)
         }
     }
-    
-    private var dividerSection: some View {
-        HStack(spacing: 16) {
-            Rectangle()
-                .fill(Color.gray.opacity(0.3))
-                .frame(height: 1)
-            
-            Text("OR")
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            Rectangle()
-                .fill(Color.gray.opacity(0.3))
-                .frame(height: 1)
-        }
-        .padding(.vertical, 8)
-    }
-    
-    private var signUpButton: some View {
-        Button {
-            showSignUp = true
-        } label: {
-            HStack(spacing: 4) {
-                Text("Don't have an account?")
-                    .foregroundColor(.secondary)
-                Text("Sign Up")
-                    .fontWeight(.semibold)
-                    .foregroundColor(.blue)
-            }
-            .font(.subheadline)
-        }
-    }
-    
+
     private func signIn() async {
-        guard !email.isEmpty, !password.isEmpty else { return }
-        
+        guard canSubmit else { return }
         do {
             try await authManager.signIn(email: email, password: password)
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.success)
+            Haptics.success()
         } catch {
             showError = true
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.error)
+            Haptics.error()
+        }
+    }
+}
+
+struct OrDivider: View {
+    var body: some View {
+        HStack(spacing: 14) {
+            Rectangle().fill(Color.primary.opacity(0.12)).frame(height: 1)
+            Text("OR")
+                .font(.caption2.weight(.bold))
+                .tracking(1.2)
+                .foregroundStyle(.secondary)
+            Rectangle().fill(Color.primary.opacity(0.12)).frame(height: 1)
         }
     }
 }
@@ -235,51 +204,61 @@ struct CustomTextField: View {
     var isSecure: Bool = false
     var showPasswordToggle: Bool = false
     @Binding var showPassword: Bool
-    
-    init(icon: String, placeholder: String, text: Binding<String>, isSecure: Bool = false, showPasswordToggle: Bool = false, showPassword: Binding<Bool> = .constant(false)) {
+    var contentType: UITextContentType?
+
+    init(
+        icon: String,
+        placeholder: String,
+        text: Binding<String>,
+        isSecure: Bool = false,
+        showPasswordToggle: Bool = false,
+        showPassword: Binding<Bool> = .constant(false),
+        contentType: UITextContentType? = nil
+    ) {
         self.icon = icon
         self.placeholder = placeholder
         self._text = text
         self.isSecure = isSecure
         self.showPasswordToggle = showPasswordToggle
         self._showPassword = showPassword
+        self.contentType = contentType
     }
-    
+
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 14) {
             Image(systemName: icon)
-                .foregroundColor(.gray)
+                .foregroundStyle(.secondary)
                 .frame(width: 20)
-            
-            if isSecure {
-                SecureField(placeholder, text: $text)
-                    .textContentType(.none)
-                    .autocorrectionDisabled()
-            } else {
-                TextField(placeholder, text: $text)
-                    .autocorrectionDisabled()
+
+            Group {
+                if isSecure {
+                    SecureField(placeholder, text: $text)
+                } else {
+                    TextField(placeholder, text: $text)
+                }
             }
-            
+            .textContentType(contentType)
+            .autocorrectionDisabled()
+
             if showPasswordToggle {
                 Button {
                     showPassword.toggle()
-                    let generator = UIImpactFeedbackGenerator(style: .light)
-                    generator.impactOccurred()
+                    Haptics.tap(.light)
                 } label: {
                     Image(systemName: showPassword ? "eye.fill" : "eye.slash.fill")
-                        .foregroundColor(.gray)
+                        .foregroundStyle(.secondary)
+                        .contentTransition(.symbolEffect(.replace))
                 }
+                .accessibilityLabel(showPassword ? "Hide password" : "Show password")
             }
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
-        )
+        .padding(.horizontal, 18)
+        .frame(height: 56)
+        .glassCard(cornerRadius: 18)
     }
 }
 
 #Preview {
     LoginView()
+        .environmentObject(AuthenticationManager())
 }

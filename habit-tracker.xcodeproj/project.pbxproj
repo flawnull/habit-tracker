@@ -19,9 +19,6 @@
 		8CEB37672EB97E2E009D3CC1 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CEB37662EB97E2E009D3CC1 /* ProfileView.swift */; };
 		8CEB37692EB98129009D3CC1 /* LaunchScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CEB37682EB98129009D3CC1 /* LaunchScreenView.swift */; };
 		8CF2D1BC2EB5713500BFD780 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8CF2D1A42EB5713500BFD780 /* Assets.xcassets */; };
-		8CF2D1BD2EB5713500BFD780 /* FIREBASE_SETUP.md in Resources */ = {isa = PBXBuildFile; fileRef = 8CF2D1A62EB5713500BFD780 /* FIREBASE_SETUP.md */; };
-		8CF2D1BE2EB5713500BFD780 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 8CF2D1A72EB5713500BFD780 /* GoogleService-Info.plist */; };
-		8CF2D1BF2EB5713500BFD780 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 8CF2D1AD2EB5713500BFD780 /* README.md */; };
 		8CF2D1C02EB5713500BFD780 /* StatisticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CF2D1B72EB5713500BFD780 /* StatisticsView.swift */; };
 		8CF2D1C22EB5713500BFD780 /* Habit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CF2D1AB2EB5713500BFD780 /* Habit.swift */; };
 		8CF2D1C32EB5713500BFD780 /* HabitDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CF2D1B12EB5713500BFD780 /* HabitDetailView.swift */; };
@@ -33,6 +30,10 @@
 		8CF2D1CB2EB5713500BFD780 /* IconButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CF2D1B32EB5713500BFD780 /* IconButton.swift */; };
 		8CF2D1CD2EB5713500BFD780 /* HabitsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CF2D1B22EB5713500BFD780 /* HabitsListView.swift */; };
 		8CF2D1CE2EB5713500BFD780 /* AddHabitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CF2D1AE2EB5713500BFD780 /* AddHabitView.swift */; };
+		8CAA00012EC1000000000001 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CAA00022EC1000000000001 /* DesignSystem.swift */; };
+		8CAA00012EC1000000000002 /* HabitCoach.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CAA00022EC1000000000002 /* HabitCoach.swift */; };
+		8CAA00012EC1000000000003 /* ReminderScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CAA00022EC1000000000003 /* ReminderScheduler.swift */; };
+		8CAA00012EC1000000000004 /* SampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CAA00022EC1000000000004 /* SampleData.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -50,8 +51,6 @@
 		8CF2D1A42EB5713500BFD780 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8CF2D1A52EB5713500BFD780 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		8CF2D1A62EB5713500BFD780 /* FIREBASE_SETUP.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = FIREBASE_SETUP.md; sourceTree = "<group>"; };
-		8CF2D1A72EB5713500BFD780 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
-		8CF2D1A82EB5713500BFD780 /* habit-tracker.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = "habit-tracker.xcodeproj"; sourceTree = "<group>"; };
 		8CF2D1A92EB5713500BFD780 /* AuthenticationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationManager.swift; sourceTree = "<group>"; };
 		8CF2D1AB2EB5713500BFD780 /* Habit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Habit.swift; sourceTree = "<group>"; };
 		8CF2D1AD2EB5713500BFD780 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -62,6 +61,10 @@
 		8CF2D1B32EB5713500BFD780 /* IconButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconButton.swift; sourceTree = "<group>"; };
 		8CF2D1B72EB5713500BFD780 /* StatisticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsView.swift; sourceTree = "<group>"; };
 		8CF2D1B82EB5713500BFD780 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
+		8CAA00022EC1000000000001 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		8CAA00022EC1000000000002 /* HabitCoach.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitCoach.swift; sourceTree = "<group>"; };
+		8CAA00022EC1000000000003 /* ReminderScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderScheduler.swift; sourceTree = "<group>"; };
+		8CAA00022EC1000000000004 /* SampleData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleData.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,8 +87,6 @@
 				8CF2D1A42EB5713500BFD780 /* Assets.xcassets */,
 				8CF2D1A52EB5713500BFD780 /* ContentView.swift */,
 				8CF2D1A62EB5713500BFD780 /* FIREBASE_SETUP.md */,
-				8CF2D1A72EB5713500BFD780 /* GoogleService-Info.plist */,
-				8CF2D1A82EB5713500BFD780 /* habit-tracker.xcodeproj */,
 				8CF2D1AA2EB5713500BFD780 /* Managers */,
 				8CF2D1AC2EB5713500BFD780 /* Models */,
 				8CF2D1AD2EB5713500BFD780 /* README.md */,
@@ -105,6 +106,8 @@
 		8CF2D1AA2EB5713500BFD780 /* Managers */ = {
 			isa = PBXGroup;
 			children = (
+				8CAA00022EC1000000000003 /* ReminderScheduler.swift */,
+				8CAA00022EC1000000000002 /* HabitCoach.swift */,
 				8CF2D1A92EB5713500BFD780 /* AuthenticationManager.swift */,
 			);
 			path = Managers;
@@ -113,6 +116,7 @@
 		8CF2D1AC2EB5713500BFD780 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				8CAA00022EC1000000000004 /* SampleData.swift */,
 				8CF2D1AB2EB5713500BFD780 /* Habit.swift */,
 			);
 			path = Models;
@@ -121,6 +125,7 @@
 		8CF2D1B92EB5713500BFD780 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				8CAA00022EC1000000000001 /* DesignSystem.swift */,
 				8CEB37682EB98129009D3CC1 /* LaunchScreenView.swift */,
 				8CEB37662EB97E2E009D3CC1 /* ProfileView.swift */,
 				8CEB37642EB97E10009D3CC1 /* ForgotPasswordView.swift */,
@@ -141,11 +146,6 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
-		8CF2D1BA2EB5713500BFD780 /* Products */ = {
-			isa = PBXGroup;
-			name = Products;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -156,6 +156,7 @@
 				8C7DCD072EB560700055CA09 /* Sources */,
 				8C7DCD082EB560700055CA09 /* Frameworks */,
 				8C7DCD092EB560700055CA09 /* Resources */,
+				8CAA00032EC1000000000001 /* Bundle Firebase config (optional) */,
 			);
 			buildRules = (
 			);
@@ -200,12 +201,6 @@
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 8C7DCD0C2EB560700055CA09 /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = 8CF2D1BA2EB5713500BFD780 /* Products */;
-					ProjectRef = 8CF2D1A82EB5713500BFD780 /* habit-tracker.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				8C7DCD0A2EB560700055CA09 /* habit-tracker */,
@@ -219,19 +214,42 @@
 			buildActionMask = 2147483647;
 			files = (
 				8CF2D1BC2EB5713500BFD780 /* Assets.xcassets in Resources */,
-				8CF2D1BD2EB5713500BFD780 /* FIREBASE_SETUP.md in Resources */,
-				8CF2D1BE2EB5713500BFD780 /* GoogleService-Info.plist in Resources */,
-				8CF2D1BF2EB5713500BFD780 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		8CAA00032EC1000000000001 /* Bundle Firebase config (optional) */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Bundle Firebase config (optional)";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "PLIST=\"${SRCROOT}/GoogleService-Info.plist\"\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\nif [ -f \"$PLIST\" ]; then\n  cp \"$PLIST\" \"$DEST/\"\n  echo \"Firebase config bundled\"\nelse\n  echo \"warning: GoogleService-Info.plist not found. Building in local demo mode (sign-in disabled). See FIREBASE_SETUP.md.\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		8C7DCD072EB560700055CA09 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8CAA00012EC1000000000004 /* SampleData.swift in Sources */,
+				8CAA00012EC1000000000003 /* ReminderScheduler.swift in Sources */,
+				8CAA00012EC1000000000002 /* HabitCoach.swift in Sources */,
+				8CAA00012EC1000000000001 /* DesignSystem.swift in Sources */,
 				8CF2D1C02EB5713500BFD780 /* StatisticsView.swift in Sources */,
 				8CF2D1C22EB5713500BFD780 /* Habit.swift in Sources */,
 				8CEB375D2EB97DAD009D3CC1 /* SettingsView.swift in Sources */,
@@ -386,16 +404,19 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				INFOPLIST_KEY_CFBundleDisplayName = HabitTracker;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.habit-tracker";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -417,16 +438,19 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				INFOPLIST_KEY_CFBundleDisplayName = HabitTracker;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.habit-tracker";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;

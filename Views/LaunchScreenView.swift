@@ -2,57 +2,48 @@
 //  LaunchScreenView.swift
 //  habit-tracker
 //
-//  Created by Ivan Kharitonenko on 04/11/2025.
-//
-
 
 import SwiftUI
 
 struct LaunchScreenView: View {
-    @State private var scale: CGFloat = 0.5
+    @State private var scale: CGFloat = 0.6
     @State private var opacity: Double = 0
-    
+    @State private var spin = false
+
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [
-                    Color.blue.opacity(0.3),
-                    Color.purple.opacity(0.3)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-            
-            VStack(spacing: 24) {
+            AppBackground()
+
+            VStack(spacing: 22) {
                 ZStack {
                     Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [.blue, .purple],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 120, height: 120)
-                        .shadow(color: .blue.opacity(0.5), radius: 25, x: 0, y: 10)
-                    
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 60))
-                        .foregroundColor(.white)
+                        .trim(from: 0, to: 0.7)
+                        .stroke(Theme.ringGradient, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                        .frame(width: 168, height: 168)
+                        .rotationEffect(.degrees(spin ? 360 : 0))
+                        .opacity(0.8)
+                    BrandMark(size: 120)
                 }
                 .scaleEffect(scale)
-                .opacity(opacity)
-                
-                Text("HabitTracker")
-                    .font(.system(size: 34, weight: .bold, design: .rounded))
-                    .opacity(opacity)
+
+                VStack(spacing: 6) {
+                    Text("HabitTracker")
+                        .font(.system(size: 34, weight: .heavy, design: .rounded))
+                        .foregroundStyle(Theme.brandGradient)
+                    Text("Close the loop, every day")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.secondary)
+                }
             }
+            .opacity(opacity)
         }
         .onAppear {
             withAnimation(.spring(response: 0.8, dampingFraction: 0.65)) {
-                scale = 1.0
-                opacity = 1.0
+                scale = 1
+                opacity = 1
+            }
+            withAnimation(.linear(duration: 1.6).repeatForever(autoreverses: false)) {
+                spin = true
             }
         }
     }

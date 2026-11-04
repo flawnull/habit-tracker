@@ -1,194 +1,77 @@
-# Firebase Authentication Setup
+# Firebase setup (optional)
 
-## Overview
+HabitTracker runs without Firebase. Habits and check-ins are always stored on device with SwiftData. Firebase only adds accounts: email sign-up, sign-in, password reset and a small user profile document.
 
-This guide covers Firebase integration for the HabitTracker application. Firebase provides user authentication, secure data storage, and password reset functionality.
+If `GoogleService-Info.plist` is missing, the app starts in local demo mode and the login screen offers **Start tracking** instead of a sign-in form.
 
-**Estimated Setup Time:** 30 minutes
+Setup takes about 10 minutes.
 
-## Step 1: Firebase Console Configuration
+## 1. Create the project
 
-### Create Project
+1. Open the [Firebase console](https://console.firebase.google.com/) and click **Add project**.
+2. Analytics is not needed. You can turn it off.
 
-1. Navigate to [Firebase Console](https://console.firebase.google.com/)
-2. Click "Add project"
-3. Enter project name (e.g., "HabitTracker")
-4. Disable Google Analytics (optional for demo)
-5. Click "Create project"
+## 2. Register the iOS app
 
-### Register iOS App
+1. Add an **iOS** app.
+2. Bundle ID: `com.habit-tracker`. If you change it, change `PRODUCT_BUNDLE_IDENTIFIER` in Xcode to match.
+3. Download `GoogleService-Info.plist`.
+4. Put it in the repo root, next to `AppDelegate.swift`. You don't need to add it to the Xcode project: the **Bundle Firebase config (optional)** build phase copies it into the app.
 
-1. Select iOS platform
-2. Enter bundle identifier (must match Xcode: e.g., `com.yourname.habittracker`)
-3. Download `GoogleService-Info.plist`
-4. Complete registration
+The file is listed in `.gitignore`. Keep it that way.
 
-### Enable Authentication
+## 3. Enable sign-in
 
-1. Navigate to Build → Authentication
-2. Click "Get started"
-3. Enable "Email/Password" sign-in method
+**Build → Authentication → Get started → Sign-in method → Email/Password → Enable.**
 
-### Create Firestore Database
+## 4. Create Firestore
 
-1. Navigate to Build → Firestore Database
-2. Click "Create database"
-3. Select "Start in test mode"
-4. Choose closest location
-5. Click "Enable"
-
-## Step 2: Xcode Integration
-
-### Add Configuration File
-
-1. Drag `GoogleService-Info.plist` into Xcode project
-2. Ensure "Copy items if needed" is checked
-3. Verify target membership
-
-### Install Firebase SDK
-
-1. File → Add Package Dependencies
-2. URL: `https://github.com/firebase/firebase-ios-sdk`
-3. Version: 10.0.0 (Up to Next Major)
-4. Select products:
-   - FirebaseAuth
-   - FirebaseFirestore
-
-### Add Source Files
-
-Create these Swift files with provided code:
-
-1. `AuthenticationManager.swift`
-2. `LoginView.swift`
-3. `SignUpView.swift`
-4. `ForgotPasswordView.swift`
-5. `ProfileView.swift`
-
-Update existing files:
-
-1. `HabitTrackerApp.swift` - Firebase initialization
-2. `ContentView.swift` - Authentication handling
-
-### Verify Bundle Identifier
-
-Ensure Xcode bundle identifier matches Firebase configuration:
-
-1. Select project → Target
-2. Signing & Capabilities tab
-3. Verify Bundle Identifier
-
-## Step 3: Testing
-
-### Build Application
+1. **Build → Firestore Database → Create database.**
+2. Pick a region close to your users.
+3. Start in production mode, then deploy the rules in this repo:
 
 ```bash
-# Clean build
-Cmd + Shift + K
-
-# Build
-Cmd + B
-
-# Run
-Cmd + R
+npm install -g firebase-tools
+firebase login
+firebase init firestore   # point it at the existing firestore.rules
+firebase deploy --only firestore:rules
 ```
 
-### Test Authentication Flow
+Or paste the contents of [`firestore.rules`](firestore.rules) into **Firestore → Rules** and publish.
 
-1. Launch application (opens to login screen)
-2. Click "Sign Up"
-3. Enter test credentials
-4. Verify account creation
-5. Test sign out
-6. Test sign in with created credentials
-7. Verify password reset email delivery
+The rules let each signed-in user read and write only `users/{their uid}`. Everything else is denied.
 
-### Verify Firebase Integration
+## 5. Run
 
-1. Open Firebase Console
-2. Navigate to Authentication → Users
-3. Confirm test user appears
-4. Check Firestore → users collection for profile data
+Clean build (<kbd>⇧</kbd><kbd>⌘</kbd><kbd>K</kbd>), then run (<kbd>⌘</kbd><kbd>R</kbd>). The build log prints `Firebase config bundled` when the plist was found.
 
-## Architecture
+Check it works:
 
-### Authentication Manager
+1. Create an account from the login screen.
+2. The user appears under **Authentication → Users**.
+3. A document appears under **Firestore → users/{uid}** with `fullName`, `email` and `createdAt`.
+4. Sign out from **Profile**, sign back in, and try **Forgot password**.
 
-Handles all authentication operations:
-- User sign up with profile creation
-- Sign in with email/password
-- Password reset via email
-- Sign out
-- Authentication state management
+## Data model
 
-### Data Flow
-
-1. User enters credentials
-2. AuthenticationManager communicates with Firebase
-3. Success: User redirected to main app
-4. Failure: Error displayed with haptic feedback
-
-### Security
-
-- Passwords hashed by Firebase
-- Secure HTTPS communication
-- Test mode Firestore rules (update for production)
+| Location | Contents |
+|---|---|
+| Firebase Auth | Email, password hash, display name |
+| `users/{uid}` | `uid`, `email`, `fullName`, `createdAt` |
+| On device (SwiftData) | Habits, check-ins |
 
 ## Troubleshooting
 
-### Common Issues
+| Symptom | Fix |
+|---|---|
+| Login screen says "Local demo build" | The plist was not found at build time. Check it sits in the repo root and is named exactly `GoogleService-Info.plist`. |
+| Package resolution fails | **File → Packages → Reset Package Caches**, then build again. |
+| `auth/operation-not-allowed` | Email/Password sign-in is not enabled in the console. |
+| Firestore permission denied on sign-up | Deploy `firestore.rules`, or check the user is signed in before the write. |
+| Sign-in works but the name shows "Habit builder" | The profile name is set after account creation. Pull to the Profile tab again, or sign out and in. |
 
-**Package Resolution Failure**
-- Check internet connection
-- File → Packages → Reset Package Caches
-- Restart Xcode
+## Before shipping
 
-**GoogleService-Info.plist Not Found**
-- Verify file location (project root)
-- Check target membership in File Inspector
-
-**Authentication Errors**
-- Confirm Email/Password enabled in Firebase Console
-- Verify bundle identifier matches
-- Check console logs for detailed error messages
-
-**Build Errors**
-- Ensure correct Firebase packages installed
-- Clean build folder
-- File → Packages → Update to Latest Package Versions
-
-## Production Deployment
-
-Before production release:
-
-1. Update Firestore security rules
-2. Implement data validation
-3. Add rate limiting
-4. Enable App Check
-5. Set up monitoring and alerts
-
-## File Structure
-
-```
-HabitTracker/
-├── GoogleService-Info.plist (NEW)
-├── HabitTrackerApp.swift (UPDATED)
-├── ContentView.swift (UPDATED)
-├── Managers/
-│   └── AuthenticationManager.swift (NEW)
-└── Views/
-    ├── LoginView.swift (NEW)
-    ├── SignUpView.swift (NEW)
-    ├── ForgotPasswordView.swift (NEW)
-    └── ProfileView.swift (NEW)
-```
-
-## Additional Resources
-
-- [Firebase Documentation](https://firebase.google.com/docs)
-- [Firebase iOS Setup](https://firebase.google.com/docs/ios/setup)
-- [Firebase Authentication Guide](https://firebase.google.com/docs/auth)
-
----
-
-**Note:** Test mode Firestore rules allow unrestricted access. Implement proper security rules before production deployment.
-
+- Turn on [App Check](https://firebase.google.com/docs/app-check) for Auth and Firestore.
+- Add email verification if you need it.
+- Set up budget alerts in Google Cloud.

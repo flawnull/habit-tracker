@@ -2,157 +2,99 @@
 //  ForgotPasswordView.swift
 //  habit-tracker
 //
-//  Created by Ivan Kharitonenko on 04/11/2025.
-//
-
 
 import SwiftUI
 
 struct ForgotPasswordView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var authManager = AuthenticationManager()
+    @EnvironmentObject private var authManager: AuthenticationManager
     @State private var email = ""
-    @State private var showSuccess = false
+    @State private var sent = false
     @State private var showError = false
-    
+
     var body: some View {
         NavigationStack {
-            ZStack {
-                LinearGradient(
-                    colors: [
-                        Color.blue.opacity(0.1),
-                        Color.purple.opacity(0.1)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
-                
-                VStack(spacing: 32) {
-                    Spacer()
-                    
-                    headerSection
-                    formSection
-                    resetButton
-                    
-                    Spacer()
-                    Spacer()
+            VStack(spacing: 28) {
+                Spacer()
+
+                ZStack {
+                    Circle()
+                        .fill(Theme.brandGradient)
+                        .frame(width: 110, height: 110)
+                        .blur(radius: 40)
+                        .opacity(0.6)
+                    Image(systemName: sent ? "envelope.open.fill" : "key.horizontal.fill")
+                        .font(.system(size: 52, weight: .semibold))
+                        .foregroundStyle(Theme.brandGradient)
+                        .contentTransition(.symbolEffect(.replace))
                 }
-                .padding(.horizontal, 24)
+
+                VStack(spacing: 8) {
+                    Text(sent ? "Check your inbox" : "Reset your password")
+                        .font(.title.weight(.bold))
+                    Text(sent
+                         ? "We sent a reset link to \(email). It can take a minute to arrive."
+                         : "Enter the email you signed up with and we'll send you a reset link.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+
+                if sent {
+                    Button("Back to sign in") { dismiss() }
+                        .buttonStyle(BrandButtonStyle())
+                } else {
+                    CustomTextField(icon: "envelope.fill", placeholder: "Email", text: $email, contentType: .emailAddress)
+                        .textInputAutocapitalization(.never)
+                        .keyboardType(.emailAddress)
+
+                    Button {
+                        Task { await resetPassword() }
+                    } label: {
+                        if authManager.isLoading {
+                            CustomLoadingView(tintColor: .white)
+                        } else {
+                            Text("Send reset link")
+                        }
+                    }
+                    .buttonStyle(BrandButtonStyle())
+                    .disabled(email.isEmpty || authManager.isLoading)
+                }
+
+                Spacer()
+                Spacer()
             }
-            .navigationTitle("Reset Password")
+            .padding(.horizontal, 24)
+            .animation(.spring(response: 0.5, dampingFraction: 0.8), value: sent)
+            .brandScreen()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel", role: .cancel) { dismiss() }
                 }
             }
-            .alert("Success", isPresented: $showSuccess) {
-                Button("OK") {
-                    dismiss()
-                }
-            } message: {
-                Text("Password reset email sent! Check your inbox.")
-            }
-            .alert("Error", isPresented: $showError) {
+            .alert("Couldn't send link", isPresented: $showError) {
                 Button("OK", role: .cancel) { }
             } message: {
-                Text(authManager.errorMessage ?? "An error occurred")
+                Text(authManager.errorMessage ?? "Something went wrong.")
             }
         }
     }
-    
-    private var headerSection: some View {
-        VStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [.blue, .cyan],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 80, height: 80)
-                    .shadow(color: .blue.opacity(0.3), radius: 15, x: 0, y: 8)
-                
-                Image(systemName: "key.fill")
-                    .font(.system(size: 36))
-                    .foregroundColor(.white)
-            }
-            
-            Text("Forgot Password?")
-                .font(.title)
-                .fontWeight(.bold)
-            
-            Text("Enter your email address and we'll send you instructions to reset your password")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-        }
-    }
-    
-    private var formSection: some View {
-        CustomTextField(
-            icon: "envelope.fill",
-            placeholder: "Email",
-            text: $email
-        )
-        .textInputAutocapitalization(.never)
-        .keyboardType(.emailAddress)
-    }
-    
-    private var resetButton: some View {
-        Button {
-            Task {
-                await resetPassword()
-            }
-        } label: {
-            HStack {
-                if authManager.isLoading {
-                    CustomLoadingView(tintColor: .white)
-                } else {
-                    Text("Send Reset Link")
-                        .font(.headline)
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: 56)
-            .foregroundColor(.white)
-            .background(
-                LinearGradient(
-                    colors: [.blue, .cyan],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-            )
-            .cornerRadius(16)
-            .shadow(color: .blue.opacity(0.3), radius: 10, x: 0, y: 5)
-        }
-        .disabled(email.isEmpty || authManager.isLoading)
-        .opacity(email.isEmpty || authManager.isLoading ? 0.6 : 1.0)
-        .animation(.easeInOut(duration: 0.2), value: authManager.isLoading)
-    }
-    
+
     private func resetPassword() async {
         guard !email.isEmpty else { return }
-        
         do {
             try await authManager.resetPassword(email: email)
-            showSuccess = true
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.success)
+            sent = true
+            Haptics.success()
         } catch {
             showError = true
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.error)
+            Haptics.error()
         }
     }
 }
 
 #Preview {
     ForgotPasswordView()
+        .environmentObject(AuthenticationManager())
 }

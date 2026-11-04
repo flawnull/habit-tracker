@@ -4,7 +4,8 @@
 //
 //  Created by Ivan Kharitonenko on 31/10/2025.
 //
-
+//  Shared create/edit sheet. Pass `editing:` to edit an existing habit.
+//
 
 import SwiftUI
 import SwiftData
@@ -12,140 +13,171 @@ import SwiftData
 struct AddHabitView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
-    
-    @State private var habitName = ""
-    @State private var selectedIcon = "star.fill"
-    @State private var selectedColor = "blue"
-    @State private var frequency = "daily"
-    
-    let habitIcons = [
-        "star.fill", "heart.fill", "bolt.fill", "flame.fill",
-        "book.fill", "dumbbell.fill", "bed.double.fill", "cup.and.saucer.fill",
-        "figure.walk", "music.note", "brain.head.profile", "leaf.fill",
-        "drop.fill", "sparkles", "moon.stars.fill", "sun.max.fill"
+
+    private let editing: Habit?
+
+    @State private var habitName: String
+    @State private var selectedIcon: String
+    @State private var selectedColor: String
+    @FocusState private var nameFocused: Bool
+
+    private let suggestions: [(String, String, String)] = [
+        ("Morning run", "figure.run", "mint"),
+        ("Read 20 pages", "book.fill", "indigo"),
+        ("Drink water", "drop.fill", "cyan"),
+        ("Meditate", "figure.mind.and.body", "purple"),
+        ("No phone in bed", "phone.down.fill", "orange")
     ]
-    
-    let habitColors = [
-        "blue", "purple", "pink", "red",
-        "orange", "yellow", "green", "teal",
-        "indigo", "cyan"
-    ]
-    
+
+    init(editing: Habit? = nil) {
+        self.editing = editing
+        _habitName = State(initialValue: editing?.name ?? "")
+        _selectedIcon = State(initialValue: editing?.iconName ?? "sparkles")
+        _selectedColor = State(initialValue: editing?.color ?? "teal")
+    }
+
+    private var trimmedName: String {
+        habitName.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var color: Color { HabitPalette.color(selectedColor) }
+
     var body: some View {
         NavigationStack {
-            Form {
-                Section("Details") {
-                    TextField("Habit name", text: $habitName)
-                        .font(.body)
-                }
-                
-                Section("Icon") {
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 60))], spacing: 16) {
-                        ForEach(habitIcons, id: \.self) { icon in
-                            IconButton(
-                                icon: icon,
-                                color: getColor(selectedColor),
-                                isSelected: selectedIcon == icon
-                            ) {
-                                let generator = UISelectionFeedbackGenerator()
-                                generator.selectionChanged()
-                                selectedIcon = icon
-                            }
-                        }
+            ScrollView {
+                VStack(spacing: 22) {
+                    preview
+                    nameField
+                    if editing == nil && trimmedName.isEmpty {
+                        suggestionChips
                     }
-                    .padding(.vertical, 8)
+                    colorPicker
+                    iconPicker
                 }
-                
-                Section("Color") {
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 50))], spacing: 16) {
-                        ForEach(habitColors, id: \.self) { color in
-                            ColorButton(
-                                color: getColor(color),
-                                isSelected: selectedColor == color
-                            ) {
-                                let generator = UISelectionFeedbackGenerator()
-                                generator.selectionChanged()
-                                selectedColor = color
-                            }
-                        }
-                    }
-                    .padding(.vertical, 8)
-                }
-                
-                Section("Preview") {
-                    HStack(spacing: 16) {
-                        ZStack {
-                            Circle()
-                                .fill(getColor(selectedColor).opacity(0.15))
-                                .frame(width: 56, height: 56)
-                            
-                            Image(systemName: selectedIcon)
-                                .font(.title2)
-                                .foregroundColor(getColor(selectedColor))
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(habitName.isEmpty ? "Your Habit" : habitName)
-                                .font(.headline)
-                            
-                            Text("0 day streak")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        Spacer()
-                    }
-                    .padding(.vertical, 8)
-                }
+                .padding()
             }
-            .navigationTitle("New Habit")
+            .brandScreen()
+            .navigationTitle(editing == nil ? "New habit" : "Edit habit")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
+                    Button("Cancel", role: .cancel) { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(editing == nil ? "Add" : "Save") { save() }
+                        .fontWeight(.semibold)
+                        .disabled(trimmedName.isEmpty)
+                }
+            }
+            .onAppear { if editing == nil { nameFocused = true } }
+        }
+        .presentationDragIndicator(.visible)
+    }
+
+    // MARK: Sections
+
+    private var preview: some View {
+        VStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(color.gradient)
+                    .frame(width: 120, height: 120)
+                    .blur(radius: 40)
+                    .opacity(0.55)
+                HabitIconBadge(icon: selectedIcon, color: color, size: 84)
+                    .contentTransition(.symbolEffect(.replace))
+            }
+            Text(trimmedName.isEmpty ? "Your new habit" : trimmedName)
+                .font(.title2.weight(.bold))
+                .foregroundStyle(trimmedName.isEmpty ? .secondary : .primary)
+                .lineLimit(1)
+        }
+        .padding(.top, 8)
+        .animation(.spring(response: 0.4, dampingFraction: 0.75), value: selectedColor)
+        .animation(.spring(response: 0.4, dampingFraction: 0.75), value: selectedIcon)
+    }
+
+    private var nameField: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "pencil")
+                .foregroundStyle(.secondary)
+            TextField("Name it, e.g. Morning run", text: $habitName)
+                .font(.body.weight(.medium))
+                .focused($nameFocused)
+                .submitLabel(.done)
+                .onSubmit { if !trimmedName.isEmpty { save() } }
+        }
+        .padding(16)
+        .glassCard(cornerRadius: 18)
+    }
+
+    private var suggestionChips: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Eyebrow(text: "Quick start")
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(suggestions, id: \.0) { name, icon, colorName in
+                        Button {
+                            Haptics.select()
+                            habitName = name
+                            selectedIcon = icon
+                            selectedColor = colorName
+                        } label: {
+                            Label(name, systemImage: icon)
+                                .font(.subheadline.weight(.medium))
+                        }
+                        .buttonStyle(.glass)
                     }
                 }
-                
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Add") {
-                        addHabit()
+            }
+            .scrollClipDisabled()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var colorPicker: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Eyebrow(text: "Color")
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 6), spacing: 12) {
+                ForEach(HabitPalette.colorNames, id: \.self) { name in
+                    ColorButton(color: HabitPalette.color(name), isSelected: selectedColor == name) {
+                        Haptics.select()
+                        selectedColor = name
                     }
-                    .fontWeight(.semibold)
-                    .disabled(habitName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
         }
+        .padding(18)
+        .glassCard(cornerRadius: 24)
     }
-    
-    private func getColor(_ colorName: String) -> Color {
-        switch colorName {
-        case "blue": return .blue
-        case "purple": return .purple
-        case "pink": return .pink
-        case "red": return .red
-        case "orange": return .orange
-        case "yellow": return .yellow
-        case "green": return .green
-        case "teal": return .teal
-        case "indigo": return .indigo
-        case "cyan": return .cyan
-        default: return .blue
+
+    private var iconPicker: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Eyebrow(text: "Icon")
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 6), spacing: 12) {
+                ForEach(HabitPalette.icons, id: \.self) { icon in
+                    IconButton(icon: icon, color: color, isSelected: selectedIcon == icon) {
+                        Haptics.select()
+                        selectedIcon = icon
+                    }
+                }
+            }
         }
+        .padding(18)
+        .glassCard(cornerRadius: 24)
     }
-    
-    private func addHabit() {
-        let habit = Habit(
-            name: habitName.trimmingCharacters(in: .whitespacesAndNewlines),
-            iconName: selectedIcon,
-            color: selectedColor,
-            frequency: frequency
-        )
-        modelContext.insert(habit)
-        
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.success)
-        
+
+    private func save() {
+        guard !trimmedName.isEmpty else { return }
+        if let editing {
+            editing.name = trimmedName
+            editing.iconName = selectedIcon
+            editing.color = selectedColor
+        } else {
+            modelContext.insert(Habit(name: trimmedName, iconName: selectedIcon, color: selectedColor))
+        }
+        try? modelContext.save()
+        Haptics.success()
         dismiss()
     }
 }

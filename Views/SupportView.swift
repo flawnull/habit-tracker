@@ -2,191 +2,120 @@
 //  SupportView.swift
 //  habit-tracker
 //
-//  Created by Ivan Kharitonenko on 04/11/2025.
-//
-
 
 import SwiftUI
 
 struct SupportView: View {
     @Environment(\.dismiss) private var dismiss
-    @AppStorage("isDarkMode") private var isDarkMode = false
-    @State private var selectedQuestion: FAQItem?
-    
+    @Environment(\.openURL) private var openURL
+    @State private var expanded: FAQItem.ID?
+
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 24) {
-                    headerSection
-                    faqSection
-                    contactSection
-                }
-                .padding()
-            }
-            .navigationTitle("Help & Support")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
-                        dismiss()
+                VStack(spacing: 22) {
+                    VStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(Theme.brandGradient)
+                                .frame(width: 100, height: 100)
+                                .blur(radius: 36)
+                                .opacity(0.55)
+                            Image(systemName: "questionmark.bubble.fill")
+                                .font(.system(size: 52, weight: .semibold))
+                                .foregroundStyle(Theme.brandGradient)
+                        }
+                        Text("How can we help?")
+                            .font(.title2.weight(.bold))
+                        Text("Quick answers to the common questions.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                     }
-                    .fontWeight(.semibold)
-                }
-            }
-        }
-    }
-    
-    private var headerSection: some View {
-        VStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [.blue.opacity(0.2), .purple.opacity(0.2)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 80, height: 80)
-                
-                Image(systemName: "questionmark.circle.fill")
-                    .font(.system(size: 40))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [.blue, .purple],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-            }
-            
-            Text("How can we help?")
-                .font(.title2)
-                .fontWeight(.bold)
-            
-            Text("Find answers to common questions or contact us")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-        }
-        .padding(.vertical)
-    }
-    
-    private var faqSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Frequently Asked Questions")
-                .font(.headline)
-            
-            VStack(spacing: 12) {
-                ForEach(faqItems) { item in
-                    FAQRow(
-                        item: item,
-                        isExpanded: selectedQuestion?.id == item.id
-                    ) {
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                            selectedQuestion = selectedQuestion?.id == item.id ? nil : item
+                    .padding(.top, 12)
+
+                    VStack(spacing: 10) {
+                        ForEach(FAQItem.all) { item in
+                            FAQRow(item: item, isExpanded: expanded == item.id) {
+                                withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+                                    expanded = expanded == item.id ? nil : item.id
+                                }
+                                Haptics.select()
+                            }
+                        }
+                    }
+
+                    VStack(alignment: .leading, spacing: 12) {
+                        Eyebrow(text: "Still stuck?")
+                        ContactButton(icon: "ladybug.fill", title: "Report a bug", subtitle: "Open an issue on GitHub", color: .red) {
+                            openURL(AppConfig.repositoryURL.appending(path: "issues/new"))
+                        }
+                        ContactButton(icon: "lightbulb.fill", title: "Suggest a feature", subtitle: "Start a discussion", color: .yellow) {
+                            openURL(AppConfig.repositoryURL.appending(path: "issues"))
                         }
                     }
                 }
+                .padding(.horizontal)
+                .padding(.bottom, 24)
             }
-        }
-    }
-    
-    private var contactSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Still need help?")
-                .font(.headline)
-            
-            VStack(spacing: 12) {
-                ContactButton(
-                    icon: "envelope.fill",
-                    title: "Email Support",
-                    subtitle: "support@habittracker.com",
-                    color: .blue
-                ) {
-                    // Would open email
-                }
-                
-                ContactButton(
-                    icon: "message.fill",
-                    title: "Live Chat",
-                    subtitle: "Available 9 AM - 5 PM EST",
-                    color: .green
-                ) {
-                    // Would open chat
+            .brandScreen()
+            .navigationTitle("Help & support")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }.fontWeight(.semibold)
                 }
             }
         }
-        .environment(\.colorScheme, isDarkMode ? .dark : .light)
     }
-    
-    private let faqItems: [FAQItem] = [
-        FAQItem(
-            question: "How do I create a new habit?",
-            answer: "Tap the '+' button on the Today or Habits tab. Choose an icon, color, and name for your habit. You can customize it anytime by tapping on the habit."
-        ),
-        FAQItem(
-            question: "How are streaks calculated?",
-            answer: "Your streak increases by 1 each day you complete a habit. If you miss a day, the streak resets to 0. Your best streak is saved and displayed in statistics."
-        ),
-        FAQItem(
-            question: "Can I edit or delete habits?",
-            answer: "Yes! Tap any habit to view details, then use the menu button (•••) to edit or delete. You can also swipe left on habits in the list view."
-        ),
-        FAQItem(
-            question: "Is my data backed up?",
-            answer: "Your habits are stored locally on your device and synced with your account. As long as you're signed in, your data is safe."
-        ),
-        FAQItem(
-            question: "How do I reset my password?",
-            answer: "On the login screen, tap 'Forgot Password?' Enter your email and we'll send you instructions to reset your password."
-        )
-    ]
 }
 
 struct FAQItem: Identifiable {
-    let id = UUID()
+    let id: Int
     let question: String
     let answer: String
+
+    static let all: [FAQItem] = [
+        FAQItem(id: 0, question: "How do I add a habit?", answer: "Tap + on the Today or Habits tab. Pick a name, a color and an icon, or start from one of the quick-start suggestions."),
+        FAQItem(id: 1, question: "How are streaks counted?", answer: "A streak is the number of consecutive days you checked in. If today is still open, the streak counts up to yesterday, so you don't lose it before the day ends."),
+        FAQItem(id: 2, question: "I forgot to log yesterday. Can I fix it?", answer: "Yes. Open the habit from the Habits tab and tap any past day in the heatmap to add or remove a check-in."),
+        FAQItem(id: 3, question: "How does the AI coach work?", answer: "On devices with Apple Intelligence, the coach runs Apple's on-device language model through the Foundation Models framework. Your habit data never leaves the phone. Other devices get a rule-based coach instead."),
+        FAQItem(id: 4, question: "Where is my data stored?", answer: "Habits and check-ins live on your device in SwiftData. If you create an account, only your name and email are stored in Firebase."),
+        FAQItem(id: 5, question: "How do I reset my password?", answer: "On the sign-in screen tap Forgot password and enter your email. A reset link arrives within a minute.")
+    ]
 }
 
 struct FAQRow: View {
     let item: FAQItem
     let isExpanded: Bool
     let onTap: () -> Void
-    
+
     var body: some View {
         Button(action: onTap) {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(alignment: .top) {
                     Text(item.question)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundColor(.primary)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.primary)
                         .multilineTextAlignment(.leading)
-                    
                     Spacer()
-                    
                     Image(systemName: "chevron.down")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(isExpanded ? 180 : 0))
                 }
-                
                 if isExpanded {
                     Text(item.answer)
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
                         .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
             .padding(16)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.systemBackground))
-                    .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
-            )
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .glassCard(cornerRadius: 18)
         }
         .buttonStyle(.plain)
     }
@@ -198,42 +127,31 @@ struct ContactButton: View {
     let subtitle: String
     let color: Color
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 16) {
-                ZStack {
-                    Circle()
-                        .fill(color.opacity(0.15))
-                        .frame(width: 48, height: 48)
-                    
-                    Image(systemName: icon)
-                        .foregroundColor(color)
-                }
-                
-                VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 14) {
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 40, height: 40)
+                    .background(color.gradient, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundColor(.primary)
-                    
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.primary)
                     Text(subtitle)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
-                
                 Spacer()
-                
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                Image(systemName: "arrow.up.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
             }
-            .padding(16)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.systemBackground))
-                    .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
-            )
+            .padding(14)
+            .contentShape(Rectangle())
+            .glassCard(cornerRadius: 18)
         }
         .buttonStyle(.plain)
     }

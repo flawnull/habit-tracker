@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="400" viewBox="0 0 1280 400">
+  <defs>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0FF585"/>
+      <stop offset="0.5" stop-color="#29B3AD"/>
+      <stop offset="1" stop-color="#5C5EE6"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0FF585"/>
+      <stop offset="1" stop-color="#5C5EE6"/>
+    </linearGradient>
+    <filter id="blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="70"/></filter>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#ffffff" stroke-opacity="0.04"/>
+    </pattern>
+    <clipPath id="card"><rect width="1280" height="400" rx="28"/></clipPath>
+  </defs>
+  <g clip-path="url(#card)">
+    <rect width="1280" height="400" fill="#141419"/>
+    <circle cx="180" cy="60" r="220" fill="#5C5EE6" opacity="0.55" filter="url(#blur)"/>
+    <circle cx="1150" cy="380" r="240" fill="#0FF585" opacity="0.28" filter="url(#blur)"/>
+    <circle cx="760" cy="200" r="160" fill="#29B3AD" opacity="0.22" filter="url(#blur)"/>
+    <rect width="1280" height="400" fill="url(#grid)"/>
+
+    <!-- loop mark -->
+    <g transform="translate(250 200)">
+      <circle r="118" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="26"/>
+      <path d="M 0 -118 A 118 118 0 1 1 -112 -36" fill="none" stroke="url(#ring)" stroke-width="26" stroke-linecap="round" filter="url(#glow)" opacity="0.7"/>
+      <path d="M 0 -118 A 118 118 0 1 1 -112 -36" fill="none" stroke="url(#ring)" stroke-width="26" stroke-linecap="round"/>
+      <path d="M 0 -118 L 0 -52 A 52 52 0 1 1 -52 2" fill="none" stroke="url(#ring)" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- copy -->
+    <g font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Helvetica, Arial, sans-serif">
+      <text x="440" y="150" font-size="18" font-weight="700" letter-spacing="4" fill="#ffffff" fill-opacity="0.55">IOS 26 · SWIFTUI · ON-DEVICE AI</text>
+      <text x="436" y="232" font-size="84" font-weight="800" fill="url(#brand)">HabitTracker</text>
+      <text x="440" y="284" font-size="28" font-weight="500" fill="#ffffff" fill-opacity="0.82">Close the loop, every day.</text>
+      <g transform="translate(440 318)" font-size="16" font-weight="600" fill="#ffffff">
+        <rect width="132" height="34" rx="17" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.15"/>
+        <text x="66" y="22" text-anchor="middle" fill-opacity="0.85">Liquid Glass</text>
+        <rect x="144" width="164" height="34" rx="17" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.15"/>
+        <text x="226" y="22" text-anchor="middle" fill-opacity="0.85">Foundation Models</text>
+        <rect x="320" width="128" height="34" rx="17" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.15"/>
+        <text x="384" y="22" text-anchor="middle" fill-opacity="0.85">Swift Charts</text>
+        <rect x="460" width="112" height="34" rx="17" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.15"/>
+        <text x="516" y="22" text-anchor="middle" fill-opacity="0.85">SwiftData</text>
+      </g>
+    </g>
+  </g>
+</svg>

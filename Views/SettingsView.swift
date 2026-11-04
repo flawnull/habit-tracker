@@ -2,129 +2,167 @@
 //  SettingsView.swift
 //  habit-tracker
 //
-//  Created by Ivan Kharitonenko on 04/11/2025.
-//
-
 
 import SwiftUI
+import SwiftData
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
-    @AppStorage("isDarkMode") private var isDarkMode = false
-    @State private var notificationsEnabled = true
-    @State private var dailyReminderTime = Date()
-    
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.openURL) private var openURL
+    @AppStorage("appearance") private var appearance: AppearanceMode = .system
+    @AppStorage("reminders.enabled") private var remindersEnabled = false
+    @AppStorage("reminders.time") private var reminderTimestamp: Double = SettingsView.defaultReminder
+    @State private var permissionDenied = false
+    @State private var confirmErase = false
+
+    private static let defaultReminder: Double = {
+        let date = Calendar.current.date(bySettingHour: 20, minute: 0, second: 0, of: .now) ?? .now
+        return date.timeIntervalSince1970
+    }()
+
+    private var reminderTime: Binding<Date> {
+        Binding(
+            get: { Date(timeIntervalSince1970: reminderTimestamp) },
+            set: { reminderTimestamp = $0.timeIntervalSince1970 }
+        )
+    }
+
     var body: some View {
         NavigationStack {
-            List {
+            Form {
                 Section {
-                    Toggle(isOn: $notificationsEnabled) {
-                        HStack(spacing: 12) {
-                            Image(systemName: "bell.fill")
-                                .foregroundColor(.orange)
-                            Text("Enable Notifications")
-                        }
+                    Picker(selection: $appearance) {
+                        ForEach(AppearanceMode.allCases) { Text($0.title).tag($0) }
+                    } label: {
+                        SettingsLabel(title: "Theme", icon: "circle.lefthalf.filled", color: Theme.indigo)
                     }
-                    .tint(.blue)
-                    
-                    if notificationsEnabled {
-                        DatePicker(
-                            selection: $dailyReminderTime,
-                            displayedComponents: .hourAndMinute
-                        ) {
-                            HStack(spacing: 12) {
-                                Image(systemName: "clock.fill")
-                                    .foregroundColor(.blue)
-                                Text("Daily Reminder")
-                            }
+                    .pickerStyle(.menu)
+                } header: {
+                    Text("Appearance")
+                }
+
+                Section {
+                    Toggle(isOn: $remindersEnabled) {
+                        SettingsLabel(title: "Daily reminder", icon: "bell.badge.fill", color: Theme.flame)
+                    }
+                    if remindersEnabled {
+                        DatePicker(selection: reminderTime, displayedComponents: .hourAndMinute) {
+                            SettingsLabel(title: "Time", icon: "clock.fill", color: Theme.teal)
                         }
                     }
                 } header: {
                     Text("Notifications")
-                }
-                
-                Section {
-                    Toggle(isOn: $isDarkMode) {
-                        HStack(spacing: 12) {
-                            Image(systemName: isDarkMode ? "moon.fill" : "sun.max.fill")
-                                .foregroundColor(isDarkMode ? .purple : .yellow)
-                            Text("Dark Mode")
-                        }
-                    }
-                    .tint(.blue)
-                } header: {
-                    Text("Appearance")
                 } footer: {
-                    Text("App will follow system appearance when disabled")
+                    Text(permissionDenied
+                         ? "Notifications are blocked. Enable them for HabitTracker in the Settings app."
+                         : "One gentle nudge a day, scheduled locally on your device.")
                 }
-                
+
                 Section {
                     Button {
-                        // Would open privacy policy
+                        SampleData.seed(into: modelContext)
+                        Haptics.success()
                     } label: {
-                        HStack {
-                            Image(systemName: "lock.shield.fill")
-                                .foregroundColor(.green)
-                            Text("Privacy Policy")
-                                .foregroundColor(.primary)
-                            Spacer()
-                            Image(systemName: "arrow.up.right.square")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
+                        SettingsLabel(title: "Load demo data", icon: "wand.and.stars", color: .purple)
                     }
-                    
-                    Button {
-                        // Would open terms
+                    Button(role: .destructive) {
+                        confirmErase = true
                     } label: {
-                        HStack {
-                            Image(systemName: "doc.text.fill")
-                                .foregroundColor(.blue)
-                            Text("Terms of Service")
-                                .foregroundColor(.primary)
-                            Spacer()
-                            Image(systemName: "arrow.up.right.square")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
+                        SettingsLabel(title: "Erase all habits", icon: "trash.fill", color: .red)
                     }
                 } header: {
-                    Text("Legal")
+                    Text("Data")
+                } footer: {
+                    Text("Demo data adds six habits with ten weeks of history. Useful for exploring Insights or taking screenshots.")
                 }
-                
+
                 Section {
-                    HStack {
-                        Text("Version")
-                        Spacer()
-                        Text("1.0.0")
-                            .foregroundColor(.secondary)
+                    Button {
+                        openURL(AppConfig.repositoryURL)
+                    } label: {
+                        HStack {
+                            SettingsLabel(title: "Source code", icon: "chevron.left.forwardslash.chevron.right", color: .gray)
+                            Spacer()
+                            Image(systemName: "arrow.up.right")
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(.tertiary)
+                        }
                     }
-                    
-                    HStack {
-                        Text("Build")
-                        Spacer()
-                        Text("2024.1")
-                            .foregroundColor(.secondary)
+                    LabeledContent {
+                        Text(AppConfig.version).monospacedDigit()
+                    } label: {
+                        SettingsLabel(title: "Version", icon: "number", color: Theme.teal)
+                    }
+                    LabeledContent {
+                        Text(AppConfig.isFirebaseReady ? "Firebase" : "Local only")
+                    } label: {
+                        SettingsLabel(title: "Backend", icon: "server.rack", color: Theme.indigo)
                     }
                 } header: {
                     Text("About")
                 }
             }
+            .foregroundStyle(.primary)
+            .brandScreen()
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                    .fontWeight(.semibold)
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                        .fontWeight(.semibold)
                 }
             }
+            .onChange(of: remindersEnabled) { _, enabled in
+                Task { await updateReminder(enabled: enabled) }
+            }
+            .onChange(of: reminderTimestamp) { _, _ in
+                Task { await updateReminder(enabled: remindersEnabled) }
+            }
+            .confirmationDialog("Erase every habit and check-in?", isPresented: $confirmErase, titleVisibility: .visible) {
+                Button("Erase everything", role: .destructive) {
+                    SampleData.eraseAll(in: modelContext)
+                    Haptics.success()
+                }
+            } message: {
+                Text("This can't be undone.")
+            }
         }
-        .environment(\.colorScheme, isDarkMode ? .dark : .light)
+    }
+
+    private func updateReminder(enabled: Bool) async {
+        guard enabled else {
+            ReminderScheduler.cancel()
+            return
+        }
+        let granted = await ReminderScheduler.requestAuthorization()
+        permissionDenied = !granted
+        if granted {
+            await ReminderScheduler.scheduleDaily(at: reminderTime.wrappedValue)
+        } else {
+            remindersEnabled = false
+        }
+    }
+}
+
+struct SettingsLabel: View {
+    let title: String
+    let icon: String
+    let color: Color
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 28, height: 28)
+                .background(color.gradient, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            Text(title)
+        }
     }
 }
 
 #Preview {
     SettingsView()
+        .modelContainer(SampleData.previewContainer)
 }
